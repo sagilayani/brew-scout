@@ -79,6 +79,6 @@ class BrewScoutApp(App):
         self.push_screen(ScanScreen())
 
 
-def main() -> None:
+def run_tui() -> None:
     app = BrewScoutApp()
     app.run()

@@ -32,6 +32,7 @@ class ResultsScreen(Screen):
         yield SelectionList[str](id="match-list")
         with Horizontal(id="apply-bar"):
             yield Button("Onboard Selected", id="btn-onboard", variant="success")
+            yield Button("Onboard All", id="btn-onboard-all", variant="warning")
             yield Button("Select All", id="btn-all", variant="default")
             yield Button("Deselect All", id="btn-none", variant="default")
             yield Button("Quit", id="btn-quit", variant="error")
@@ -71,6 +72,9 @@ class ResultsScreen(Screen):
         elif event.button.id == "btn-none":
             sel_list.deselect_all()
         elif event.button.id == "btn-onboard":
+            self._start_onboard()
+        elif event.button.id == "btn-onboard-all":
+            sel_list.select_all()
             self._start_onboard()
         elif event.button.id == "btn-quit":
             self.app.exit()

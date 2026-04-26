@@ -11,29 +11,51 @@ from brew_scout.models import OnboardResult
 BREW_BIN = shutil.which("brew") or "/opt/homebrew/bin/brew"
 
 
-def adopt_cask(
-    token: str,
+def _run_brew_cask(
+    args: list[str],
     on_line: Callable[[str], None] | None = None,
-) -> OnboardResult:
+) -> tuple[int, str]:
     proc = subprocess.Popen(
-        [BREW_BIN, "install", "--cask", "--adopt", token],
+        [BREW_BIN, *args],
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,
     )
-
     lines: list[str] = []
     for line in iter(proc.stdout.readline, ""):
         stripped = line.rstrip()
         lines.append(stripped)
         if on_line:
             on_line(stripped)
-
     proc.wait()
-    output = "\n".join(lines)
+    return proc.returncode, "\n".join(lines)
+
+
+def adopt_cask(
+    token: str,
+    on_line: Callable[[str], None] | None = None,
+) -> OnboardResult:
+    # Try --adopt first (zero-disruption if versions match)
+    returncode, output = _run_brew_cask(
+        ["install", "--cask", "--adopt", token],
+        on_line=on_line,
+    )
+
+    if returncode != 0 and "different from the one being installed" in output:
+        # Version mismatch — fall back to --force to replace with brew-managed version
+        if on_line:
+            on_line("")
+            on_line("Version mismatch — retrying with --force to upgrade...")
+            on_line("")
+        returncode, force_output = _run_brew_cask(
+            ["install", "--cask", "--force", token],
+            on_line=on_line,
+        )
+        output = output + "\n" + force_output
+
     return OnboardResult(
         cask_token=token,
-        success=proc.returncode == 0,
+        success=returncode == 0,
         output=output,
     )
 

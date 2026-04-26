@@ -46,16 +46,38 @@ def match_app(app: AppInfo, cache: CaskCache) -> CaskMatch:
             match_method="normalized-name",
         )
 
-    # Tier 4: Fuzzy match against all tokens
-    matches = difflib.get_close_matches(normalized, cache.all_tokens, n=1, cutoff=0.6)
-    if matches:
-        token = matches[0]
-        ratio = difflib.SequenceMatcher(None, normalized, token).ratio()
+    # Tier 3b: Try display name (CFBundleName) normalized
+    display_normalized = app.name.lower().replace(" ", "-")
+    if display_normalized != normalized and display_normalized in cache.normalized_name_to_token:
+        token = cache.normalized_name_to_token[display_normalized]
         return CaskMatch(
             app=app,
             cask_token=token,
             cask_version=cache.token_to_version.get(token),
-            confidence=round(ratio, 2),
+            confidence=0.9,
+            match_method="normalized-name",
+        )
+
+    # Tier 4: Fuzzy match against all tokens (high cutoff to avoid false positives)
+    # Try both the .app stem and the display name
+    candidates = {normalized, display_normalized}
+    best_token: str | None = None
+    best_ratio = 0.0
+    for candidate in candidates:
+        matches = difflib.get_close_matches(candidate, cache.all_tokens, n=1, cutoff=0.9)
+        if matches:
+            token = matches[0]
+            ratio = difflib.SequenceMatcher(None, candidate, token).ratio()
+            if ratio > best_ratio:
+                best_ratio = ratio
+                best_token = token
+
+    if best_token:
+        return CaskMatch(
+            app=app,
+            cask_token=best_token,
+            cask_version=cache.token_to_version.get(best_token),
+            confidence=round(best_ratio, 2),
             match_method="fuzzy",
         )
 

@@ -6,7 +6,6 @@ build-backend = "hatchling.build"
 name = "brew-scout"
 version = "0.1.0"
 description = "Discover non-Homebrew apps and onboard them via brew install --cask --adopt"
-readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"
 dependencies = [

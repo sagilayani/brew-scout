@@ -53,24 +53,30 @@ class CaskCache:
             self.all_tokens.append(token)
             self.token_to_version[token] = cask.get("version", "")
 
+            is_base = "@" not in token  # base tokens preferred over variants
+
             # Normalized name lookup: token itself + display names
-            self.normalized_name_to_token[token] = token
+            if is_base or token not in self.normalized_name_to_token:
+                self.normalized_name_to_token[token] = token
             for name in cask.get("name", []):
                 normalized = name.lower().replace(" ", "-")
-                self.normalized_name_to_token[normalized] = token
+                if is_base or normalized not in self.normalized_name_to_token:
+                    self.normalized_name_to_token[normalized] = token
 
             # App artifact lookup: e.g., "Slack.app" -> "slack"
             for artifact in cask.get("artifacts", []):
                 if isinstance(artifact, dict):
                     for app_entry in artifact.get("app", []):
                         if isinstance(app_entry, str):
-                            self.app_name_to_token[app_entry] = token
+                            if is_base or app_entry not in self.app_name_to_token:
+                                self.app_name_to_token[app_entry] = token
                     # Bundle ID from uninstall quit
                     for uninstall in artifact.get("uninstall", []):
                         if isinstance(uninstall, dict):
                             for quit_id in uninstall.get("quit", []):
                                 if isinstance(quit_id, str):
-                                    self.bundle_id_to_token[quit_id] = token
+                                    if is_base or quit_id not in self.bundle_id_to_token:
+                                        self.bundle_id_to_token[quit_id] = token
                     for zap in artifact.get("zap", []):
                         if isinstance(zap, dict):
                             for quit_id in zap.get("quit", []):

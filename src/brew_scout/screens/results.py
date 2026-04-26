@@ -53,8 +53,7 @@ class ResultsScreen(Screen):
                 f"[{confidence_pct}, {m.match_method}]  "
                 f"(installed: {m.app.version}, cask: {m.cask_version or '?'})"
             )
-            initial = m.confidence >= 0.6
-            sel_list.add_option(Selection(label, m.cask_token, initial))
+            sel_list.add_option(Selection(label, m.cask_token, False))
 
         # Show unmatched summary
         unmatched = [m for m in self._matches if not m.cask_token]

@@ -42,16 +42,11 @@ def adopt_cask(
     )
 
     if returncode != 0 and "different from the one being installed" in output:
-        # Version mismatch — fall back to --force to replace with brew-managed version
         if on_line:
             on_line("")
-            on_line("Version mismatch — retrying with --force to upgrade...")
+            on_line("Version mismatch — your app is outdated.")
+            on_line(f"Update {token} through the app itself, then retry brew-scout.")
             on_line("")
-        returncode, force_output = _run_brew_cask(
-            ["install", "--cask", "--force", token],
-            on_line=on_line,
-        )
-        output = output + "\n" + force_output
 
     return OnboardResult(
         cask_token=token,

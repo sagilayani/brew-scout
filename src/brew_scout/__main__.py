@@ -103,7 +103,7 @@ def _run_cli(app_name: str | None, onboard_all: bool, dry_run: bool) -> None:
     failed = 0
     for m in matched:
         console.print(f"[cyan]brew install --cask --adopt {m.cask_token}[/]")
-        result = adopt_cask(m.cask_token, on_line=lambda line: console.print(f"  {line}"))
+        result = adopt_cask(m.cask_token, app_path=m.app.path, on_line=lambda line: console.print(f"  {line}"))
         if result.success:
             console.print(f"  [green]Done[/]\n")
             succeeded += 1

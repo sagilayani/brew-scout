@@ -89,10 +89,13 @@ class ResultsScreen(Screen):
 
     def _start_onboard(self) -> None:
         sel_list = self.query_one("#match-list", SelectionList)
-        selected = list(sel_list.selected)
-        if not selected:
+        selected_tokens = set(sel_list.selected)
+        if not selected_tokens:
             self.notify("No packages selected", severity="warning")
             return
+        # Build (token, app_path) tuples for the onboarder
+        token_to_path = {m.cask_token: m.app.path for m in self._matches if m.cask_token}
+        selected = [(t, token_to_path.get(t)) for t in selected_tokens]
         from brew_scout.screens.onboard import OnboardScreen
         self.app.switch_screen(OnboardScreen(selected))
 

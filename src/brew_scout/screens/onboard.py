@@ -15,15 +15,15 @@ class OnboardScreen(Screen):
         ("q", "quit", "Quit"),
     ]
 
-    def __init__(self, tokens: list[str]) -> None:
+    def __init__(self, tokens_with_paths: list[tuple[str, str | None]]) -> None:
         super().__init__()
-        self._tokens = tokens
+        self._tokens_with_paths = tokens_with_paths
         self._results: list[OnboardResult] = []
         self._completed = 0
 
     def compose(self) -> ComposeResult:
-        yield Label(f"Onboarding {len(self._tokens)} packages via brew install --cask --adopt")
-        yield ProgressBar(id="progress", total=len(self._tokens), show_eta=True)
+        yield Label(f"Onboarding {len(self._tokens_with_paths)} packages via brew install --cask --adopt")
+        yield ProgressBar(id="progress", total=len(self._tokens_with_paths), show_eta=True)
         yield Label(id="progress-label")
         yield RichLog(id="install-log", highlight=True, markup=True, wrap=True)
         yield Button("Done", id="btn-done", variant="success", disabled=True)
@@ -53,7 +53,7 @@ class OnboardScreen(Screen):
             self.app.call_from_thread(self._update_progress, result.cask_token, status)
 
         self._results = adopt_multiple(
-            self._tokens,
+            self._tokens_with_paths,
             on_line=on_line,
             on_complete=on_complete,
         )
@@ -62,7 +62,7 @@ class OnboardScreen(Screen):
     def _update_progress(self, token: str, status: str) -> None:
         self.query_one("#progress", ProgressBar).advance(1)
         self.query_one("#progress-label", Label).update(
-            f"{self._completed}/{len(self._tokens)}: {token} {status}"
+            f"{self._completed}/{len(self._tokens_with_paths)}: {token} {status}"
         )
 
     def _install_done(self) -> None:

@@ -1,0 +1,21 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "brew-scout"
+version = "0.1.0"
+description = "Discover non-Homebrew apps and onboard them via brew install --cask --adopt"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+dependencies = [
+    "textual>=0.40",
+    "rich>=13.0",
+]
+
+[project.scripts]
+brew-scout = "brew_scout.__main__:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/brew_scout"]
